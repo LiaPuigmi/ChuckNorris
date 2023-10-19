@@ -16,7 +16,10 @@ const urlRandom = 'https://api.chucknorris.io/jokes/random';
 button.addEventListener('click', () => {
     fetch(urlRandom)
         .then(Response => Response.json())
-        .then(JSON => saveResult(JSON.value));
+        .then(JSON => saveResult(JSON.value))
+        .catch(function (error) {
+        console.log("Hubo un problema con la petición:" + error.message);
+    });
     function saveResult(json) {
         frase.innerHTML = json;
     }
@@ -28,7 +31,10 @@ let dropdown = document.getElementById('default_select');
 const getPost = () => __awaiter(void 0, void 0, void 0, function* () {
     yield fetch(urlSelectCategory)
         .then(Response => Response.json())
-        .then(JSON => saveResultCategories(JSON));
+        .then(JSON => saveResultCategories(JSON))
+        .catch(function (error) {
+        console.log("Hubo un problema con la petición:" + error.message);
+    });
     function saveResultCategories(json) {
         for (let index = 0; index < json.length; index++) {
             const element = json[index];
@@ -43,7 +49,6 @@ const getPost = () => __awaiter(void 0, void 0, void 0, function* () {
 getPost();
 dropdown.addEventListener("change", function () {
     category = this.value;
-    console.log(category);
     urlCategory = `https://api.chucknorris.io/jokes/random?category=${category}`;
     fetch(urlCategory)
         .then(Response => Response.json())
@@ -52,25 +57,46 @@ dropdown.addEventListener("change", function () {
         frase2.innerHTML = json;
     }
 });
+/* dropdown.addEventListener("change", showRandomJoke);   */
+dropdown.addEventListener("click", showRandomJoke);
+function showRandomJoke() {
+    category = this.value;
+    console.log(category);
+    urlCategory = `https://api.chucknorris.io/jokes/random?category=${category}`;
+    fetch(urlCategory)
+        .then(Response => Response.json())
+        .then(JSON => saveResult(JSON.value));
+}
+function saveResult(json) {
+    frase2.innerHTML = json;
+}
 let query = 'fuck';
 let urlSearch = `https://api.chucknorris.io/jokes/search?query=${query}`;
 const input = document.getElementById('dark_field');
 input.addEventListener('keypress', function (evt) {
     const getPost = (urlSearch) => __awaiter(this, void 0, void 0, function* () {
-        yield fetch(urlSearch)
-            .then(Response => Response.json())
-            .then(JSON => saveResultCategories(JSON.result));
-        console.log(urlSearch);
-        function saveResultCategories(json) {
-            for (let index = 0; index < json.length; index++) {
-                let element = json[index];
-                console.log(element);
+        try {
+            let response = yield fetch(urlSearch);
+            let data = yield response.json();
+            const valor = data.result.length;
+            console.log(valor);
+            if (valor > 0) {
+                let random = Math.floor(Math.random() * valor);
+                frase3.innerHTML = data.result[random].value;
+                console.log(data.result[random].value);
+                console.log(data.result.value);
             }
+            else {
+                frase3.innerHTML = "No hay ninguna frase con esa palabra.";
+            }
+        }
+        catch (error) {
+            const mensaje = error.message;
+            console.log("Hubo un problema con la petición:" + mensaje);
         }
         ;
     });
     if (evt.key === 'Enter') {
-        console.log('entro');
         query = this.value;
         urlSearch = `https://api.chucknorris.io/jokes/search?query=${query}`;
         getPost(urlSearch);
